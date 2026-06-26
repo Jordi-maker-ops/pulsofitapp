@@ -81,6 +81,13 @@ npm run ios              # build web → cap sync → open Xcode
 npm run sync             # rebuild web assets and copy into both native projects
 ```
 
+### Publishing to the stores
+
+Signing + release automation is set up: push a version tag (`v1.0.0`) and CI
+produces a signed Play Store `.aab` and a TestFlight upload. Full step-by-step
+(accounts, GitHub secrets, store listing) is in
+[`../PUBLISHING.md`](../PUBLISHING.md).
+
 ### CI builds (no Mac / Android SDK needed locally)
 
 `.github/workflows/` builds both platforms on GitHub Actions:

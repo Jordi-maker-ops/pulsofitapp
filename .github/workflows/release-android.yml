@@ -1,0 +1,65 @@
+name: Android release (signed AAB)
+
+# Builds a SIGNED Android App Bundle (.aab) for the Play Store, plus a signed
+# APK. Triggers on version tags like v1.0.0, or manually.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   PULSOFIT_KEYSTORE_BASE64     base64 of the upload keystore (.jks)
+#   PULSOFIT_KEYSTORE_PASSWORD   keystore password
+#   PULSOFIT_KEY_ALIAS           key alias (e.g. "pulsofit")
+#   PULSOFIT_KEY_PASSWORD        key password
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync android
+
+      - name: Decode upload keystore
+        run: echo "${{ secrets.PULSOFIT_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload.jks"
+
+      - name: Build signed AAB + APK
+        working-directory: app/android
+        env:
+          PULSOFIT_KEYSTORE: ${{ runner.temp }}/upload.jks
+          PULSOFIT_KEYSTORE_PASSWORD: ${{ secrets.PULSOFIT_KEYSTORE_PASSWORD }}
+          PULSOFIT_KEY_ALIAS: ${{ secrets.PULSOFIT_KEY_ALIAS }}
+          PULSOFIT_KEY_PASSWORD: ${{ secrets.PULSOFIT_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease assembleRelease --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pulsofit-release
+          path: |
+            app/android/app/build/outputs/bundle/release/*.aab
+            app/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      # To auto-publish to a Play track instead of downloading the AAB, add a
+      # Play service-account JSON as a secret and use r0adkll/upload-google-play.

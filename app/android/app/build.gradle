@@ -16,10 +16,27 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Release signing is driven by environment variables so no secret ever
+    // lives in the repo. CI exports them from GitHub Secrets; locally they are
+    // simply absent and the release build stays unsigned.
+    signingConfigs {
+        release {
+            def ksPath = System.getenv("PULSOFIT_KEYSTORE")
+            if (ksPath) {
+                storeFile file(ksPath)
+                storePassword System.getenv("PULSOFIT_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("PULSOFIT_KEY_ALIAS")
+                keyPassword System.getenv("PULSOFIT_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("PULSOFIT_KEYSTORE")) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

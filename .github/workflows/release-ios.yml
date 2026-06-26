@@ -1,0 +1,94 @@
+name: iOS release (TestFlight)
+
+# Archives, signs and uploads the app to TestFlight using an App Store Connect
+# API key (cloud signing — no manual certificates/profiles needed).
+# Triggers on version tags like v1.0.0, or manually.
+#
+# Prerequisites (one-time, in your Apple account):
+#   - App Store Connect app record with bundle id com.pulsofit.app
+#   - An App Store Connect API key (Users and Access → Integrations → App Store Connect API)
+#
+# Required repository secrets:
+#   APPSTORE_API_KEY_ID       the key's Key ID
+#   APPSTORE_API_ISSUER_ID    the Issuer ID
+#   APPSTORE_API_KEY_BASE64   base64 of the downloaded AuthKey_XXXX.p8
+#   APPLE_TEAM_ID             your 10-char Apple Team ID
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+
+      - name: Install App Store Connect API key
+        run: |
+          mkdir -p ~/private_keys
+          echo "${{ secrets.APPSTORE_API_KEY_BASE64 }}" | base64 -d \
+            > ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
+
+      - name: Write ExportOptions.plist
+        working-directory: app/ios/App
+        run: |
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>uploadSymbols</key><true/>
+            <key>destination</key><string>export</string>
+          </dict></plist>
+          EOF
+
+      - name: Archive
+        working-directory: app/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App \
+            -configuration Release -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPSTORE_API_ISSUER_ID }} \
+            DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            archive
+
+      - name: Export IPA
+        working-directory: app/ios/App
+        run: |
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -exportOptionsPlist ExportOptions.plist -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8 \
+            -authenticationKeyID ${{ secrets.APPSTORE_API_KEY_ID }} \
+            -authenticationKeyIssuerID ${{ secrets.APPSTORE_API_ISSUER_ID }}
+
+      - name: Upload to TestFlight
+        run: |
+          xcrun altool --upload-app -f "$RUNNER_TEMP/export/App.ipa" -t ios \
+            --apiKey ${{ secrets.APPSTORE_API_KEY_ID }} \
+            --apiIssuer ${{ secrets.APPSTORE_API_ISSUER_ID }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pulsofit-ios-ipa
+          path: ${{ runner.temp }}/export/*.ipa
+          if-no-files-found: warn
