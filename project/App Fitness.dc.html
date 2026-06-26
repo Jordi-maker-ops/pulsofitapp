@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:#08080B;-webkit-font-smoothing:antialiased;}
+  ::-webkit-scrollbar{width:0;height:0;}
+  image-slot{display:block!important;width:100%!important;height:100%!important;}
+  @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(166,255,61,0.35);}50%{box-shadow:0 0 0 14px rgba(166,255,61,0);}}
+  @keyframes floatUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes popIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+</style>
+</helmet>
+
+<div style="min-height:100vh;background:radial-gradient(1200px 600px at 50% -10%, #16181F 0%, #08080B 60%);font-family:'Archivo',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:28px 16px 60px;gap:22px;">
+
+  <div style="text-align:center;">
+    <div style="font-family:'Archivo Black',sans-serif;letter-spacing:-0.02em;font-size:20px;color:#fff;display:flex;align-items:center;gap:8px;justify-content:center;">
+      <span style="width:11px;height:11px;border-radius:3px;background:#A6FF3D;display:inline-block;transform:rotate(45deg);"></span>PULSO<span style="color:#A6FF3D;">FIT</span>
+    </div>
+    <div style="color:#5C5F6B;font-size:12px;font-family:ui-monospace,monospace;margin-top:5px;letter-spacing:0.04em;">PROTOTIPO · TOCA UNA PANTALLA PARA NAVEGAR</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-width:480px;">
+    <sc-for list="{{ screens }}" as="s" hint-placeholder-count="7">
+      <button onClick="{{ s.onClick }}" style="{{ s.style }}">{{ s.label }}</button>
+    </sc-for>
+  </div>
+
+  <div style="width:100%;max-width:412px;height:872px;background:#0C0D12;border-radius:42px;border:1px solid #1C1E27;box-shadow:0 40px 120px rgba(0,0,0,0.6), inset 0 0 0 8px #060608;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+
+    <!-- status bar -->
+    <div style="height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:13px;font-weight:700;color:#fff;z-index:5;">
+      <span>9:41</span>
+      <span style="display:flex;gap:6px;align-items:center;font-size:11px;color:#C7CAD4;">PULSOFIT</span>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;overflow-x:hidden;position:relative;">
+
+      <!-- ============ WELCOME ============ -->
+      <sc-if value="{{ isWelcome }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;min-height:100%;animation:floatUp .4s ease;">
+          <div style="position:relative;height:430px;flex:none;background:#15171E;display:flex;align-items:flex-end;overflow:hidden;">
+            <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="welcome-hero" shape="rect" fit="cover" placeholder="Arrastra tu foto: chico y chica entrenando" style="position:absolute;inset:0;width:100%;height:100%;" hint-size="100%,100%"></x-import>
+            <div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top, #0C0D12 6%, rgba(12,13,18,0.1) 55%, rgba(12,13,18,0.4) 100%);"></div>
+            <div style="position:absolute;top:18px;left:22px;background:rgba(166,255,61,0.14);border:1px solid rgba(166,255,61,0.35);color:#A6FF3D;font-size:11px;font-weight:800;letter-spacing:0.08em;padding:6px 11px;border-radius:999px;">TU ENTRENADOR PERSONAL</div>
+          </div>
+          <div style="padding:8px 26px 30px;display:flex;flex-direction:column;gap:16px;">
+            <h1 style="margin:0;font-family:'Archivo Black',sans-serif;font-size:38px;line-height:0.98;letter-spacing:-0.03em;color:#fff;">Entrena, come<br>y avanza<br><span style="color:#A6FF3D;">sin pensar.</span></h1>
+            <p style="margin:0;color:#9396A2;font-size:15px;line-height:1.5;">Yo te hago el plan de entreno, la dieta y el seguimiento. Tú solo tienes que aparecer. <strong style="color:#C7CAD4;">¡Vamos a por ello!</strong></p>
+            <button onClick="{{ goQuiz }}" style="margin-top:6px;background:#A6FF3D;color:#0A0A0A;border:none;border-radius:16px;padding:18px;font-size:16px;font-weight:900;font-family:'Archivo',sans-serif;letter-spacing:-0.01em;cursor:pointer;animation:pulseGlow 2.6s infinite;">Empezar ahora</button>
+            <button onClick="{{ goPlans }}" style="background:transparent;color:#9396A2;border:none;font-size:14px;font-weight:600;cursor:pointer;padding:4px;">Ya tengo cuenta · Iniciar sesión</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ QUIZ ============ -->
+      <sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:8px 22px 36px;display:flex;flex-direction:column;gap:22px;animation:floatUp .4s ease;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="height:6px;border-radius:999px;background:#1C1E27;overflow:hidden;"><div style="height:100%;width:80%;background:#A6FF3D;border-radius:999px;"></div></div>
+            <div style="font-family:ui-monospace,monospace;font-size:11px;color:#5C5F6B;">PASO 4 DE 5 · CONÓCETE</div>
+            <h2 style="margin:0;font-family:'Archivo Black',sans-serif;font-size:25px;letter-spacing:-0.02em;color:#fff;line-height:1.05;">Cuéntame sobre ti</h2>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <span style="font-size:13px;font-weight:800;color:#fff;letter-spacing:0.02em;">¿Cuál es tu objetivo principal?</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;">
+              <sc-for list="{{ objetivos }}" as="o" hint-placeholder-count="4">
+                <button onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <span style="font-size:13px;font-weight:800;color:#fff;">¿Qué meta quieres alcanzar?</span>
+            <div style="background:#15161D;border:1px solid #23252F;border-radius:14px;padding:14px 15px;color:#7B7E8A;font-size:14px;font-style:italic;">Ej: bajar 5 kg para el verano 🏖️</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <span style="font-size:13px;font-weight:800;color:#fff;">¿Cómo es tu alimentación actual?</span>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+              <sc-for list="{{ dietas }}" as="d" hint-placeholder-count="4">
+                <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:11px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+              <span style="font-size:13px;font-weight:800;color:#fff;">Peso actual</span>
+              <div style="background:#15161D;border:1px solid #23252F;border-radius:14px;padding:14px;display:flex;align-items:baseline;gap:5px;"><span style="font-size:24px;font-weight:900;color:#fff;">72</span><span style="font-size:13px;color:#7B7E8A;font-weight:700;">kg</span></div>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:7px;">
+              <span style="font-size:13px;font-weight:800;color:#fff;">Altura</span>
+              <div style="background:#15161D;border:1px solid #23252F;border-radius:14px;padding:14px;display:flex;align-items:baseline;gap:5px;"><span style="font-size:24px;font-weight:900;color:#fff;">175</span><span style="font-size:13px;color:#7B7E8A;font-weight:700;">cm</span></div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <span style="font-size:13px;font-weight:800;color:#fff;">¿Cuántas comidas haces al día?</span>
+            <div style="display:flex;gap:8px;">
+              <sc-for list="{{ comidas }}" as="c" hint-placeholder-count="4">
+                <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <button onClick="{{ goPlans }}" style="margin-top:4px;background:#A6FF3D;color:#0A0A0A;border:none;border-radius:16px;padding:18px;font-size:16px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">Continuar</button>
+        </div>
+      </sc-if>
+
+      <!-- ============ PLANS ============ -->
+      <sc-if value="{{ isPlans }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:14px 22px 36px;display:flex;flex-direction:column;gap:20px;animation:floatUp .4s ease;">
+          <div style="display:flex;flex-direction:column;gap:8px;text-align:center;align-items:center;">
+            <div style="width:54px;height:54px;border-radius:16px;background:rgba(166,255,61,0.12);border:1px solid rgba(166,255,61,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;">🔥</div>
+            <h2 style="margin:4px 0 0;font-family:'Archivo Black',sans-serif;font-size:27px;letter-spacing:-0.02em;color:#fff;line-height:1.05;">Empieza tu cambio<br>hoy mismo</h2>
+            <p style="margin:0;color:#9396A2;font-size:14px;">Plan de entreno + dieta + seguimiento. Cancela cuando quieras.</p>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <sc-for list="{{ planes }}" as="p" hint-placeholder-count="2">
+              <button onClick="{{ p.onClick }}" style="{{ p.cardStyle }}">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+                  <div style="display:flex;flex-direction:column;gap:3px;text-align:left;">
+                    <span style="display:flex;align-items:center;gap:7px;font-size:16px;font-weight:900;color:#fff;">{{ p.name }}<span style="{{ p.badgeStyle }}">{{ p.badge }}</span></span>
+                    <span style="font-size:12px;color:#9396A2;font-weight:600;">{{ p.sub }}</span>
+                  </div>
+                  <div style="text-align:right;display:flex;flex-direction:column;gap:1px;">
+                    <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.02em;">{{ p.price }}</span>
+                    <span style="font-size:11px;color:#7B7E8A;font-weight:700;">{{ p.per }}</span>
+                  </div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:18px 18px;">
+            <sc-for list="{{ features }}" as="f" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:#D4D6DD;font-weight:600;">
+                <span style="width:20px;height:20px;flex:none;border-radius:7px;background:rgba(166,255,61,0.16);color:#A6FF3D;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;">✓</span>{{ f }}
+              </div>
+            </sc-for>
+          </div>
+
+          <button onClick="{{ goPay }}" style="background:#A6FF3D;color:#0A0A0A;border:none;border-radius:16px;padding:18px;font-size:16px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">{{ ctaPlan }}</button>
+          <div style="text-align:center;font-size:11px;color:#5C5F6B;">Pago seguro · Sin permanencia · Cancela en 1 toque</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ PAY ============ -->
+      <sc-if value="{{ isPay }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:6px 22px 36px;display:flex;flex-direction:column;gap:18px;animation:floatUp .4s ease;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button onClick="{{ goPlans }}" style="width:38px;height:38px;flex:none;border-radius:12px;background:#15161D;border:1px solid #23252F;color:#fff;font-size:17px;cursor:pointer;">←</button>
+            <h2 style="margin:0;font-family:'Archivo Black',sans-serif;font-size:23px;color:#fff;letter-spacing:-0.02em;">Confirmar y pagar</h2>
+          </div>
+
+          <div style="background:#13141A;border:1px solid #1C1E27;border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <span style="font-size:16px;font-weight:900;color:#fff;">{{ payPlanName }}</span>
+                <span style="font-size:12px;color:#9396A2;font-weight:600;">{{ payPlanCycle }}</span>
+              </div>
+              <span style="font-family:'Archivo Black',sans-serif;font-size:22px;color:#fff;">{{ payPlanPrice }}</span>
+            </div>
+            <div style="height:1px;background:#1C1E27;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:14px;font-weight:800;color:#fff;">Total a pagar hoy</span>
+              <span style="font-size:18px;font-weight:900;color:#A6FF3D;">{{ payPlanPrice }}</span>
+            </div>
+            <div style="font-size:11px;color:#5C5F6B;">{{ payPlanRenew }}</div>
+          </div>
+
+          <span style="font-size:13px;font-weight:800;color:#fff;">Pago rápido</span>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ wallets }}" as="w" hint-placeholder-count="3">
+              <button onClick="{{ w.onClick }}" style="{{ w.style }}"><span style="{{ w.markStyle }}">{{ w.mark }}</span>{{ w.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;margin:2px 0;">
+            <div style="flex:1;height:1px;background:#1C1E27;"></div>
+            <span style="font-size:11px;color:#5C5F6B;font-weight:700;letter-spacing:0.04em;">O TARJETA · TPV REDSYS</span>
+            <div style="flex:1;height:1px;background:#1C1E27;"></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <span style="font-size:12px;font-weight:800;color:#9396A2;">Número de tarjeta</span>
+              <div style="background:#15161D;border:1px solid #23252F;border-radius:13px;padding:14px;display:flex;justify-content:space-between;align-items:center;color:#7B7E8A;font-size:15px;font-family:ui-monospace,monospace;">1234 5678 9012 3456<span style="font-size:18px;">💳</span></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <span style="font-size:12px;font-weight:800;color:#9396A2;">Caducidad</span>
+                <div style="background:#15161D;border:1px solid #23252F;border-radius:13px;padding:14px;color:#7B7E8A;font-size:15px;font-family:ui-monospace,monospace;">MM / AA</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <span style="font-size:12px;font-weight:800;color:#9396A2;">CVC</span>
+                <div style="background:#15161D;border:1px solid #23252F;border-radius:13px;padding:14px;color:#7B7E8A;font-size:15px;font-family:ui-monospace,monospace;">•••</div>
+              </div>
+            </div>
+          </div>
+
+          <button onClick="{{ payNow }}" style="margin-top:4px;background:#A6FF3D;color:#0A0A0A;border:none;border-radius:16px;padding:18px;font-size:16px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">Pagar {{ payPlanPrice }} con Redsys</button>
+          <div style="background:#15161D;border:1px solid #23252F;border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;flex:none;border-radius:10px;background:#0E1B3A;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#4D8DFF;font-family:'Archivo',sans-serif;">R</div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:12px;color:#7B7E8A;font-weight:700;">Procesado por</span>
+              <span style="font-size:13px;color:#fff;font-weight:800;">Redsys · TPV Virtual con 3D Secure</span>
+            </div>
+          </div>
+          <div style="background:#15161D;border:1px solid #23252F;border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:12px;">
+            <div style="width:34px;height:34px;flex:none;border-radius:10px;background:rgba(166,255,61,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;">🏦</div>
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:12px;color:#7B7E8A;font-weight:700;">El pago se abona a</span>
+              <span style="font-size:13px;color:#fff;font-weight:800;">PulsoFit S.L. · ES** **** **** **** **23 4567</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px;color:#5C5F6B;"><span>🔒</span>Conexión segura con tu banco vía Redsys</div>
+        </div>
+      </sc-if>
+
+      <!-- ============ HOME ============ -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:6px 22px 110px;display:flex;flex-direction:column;gap:18px;animation:floatUp .4s ease;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:13px;color:#7B7E8A;font-weight:600;">Buenos días 👋</div>
+              <div style="font-family:'Archivo Black',sans-serif;font-size:26px;color:#fff;letter-spacing:-0.02em;">Hola, Laura</div>
+            </div>
+            <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="home-avatar" shape="rounded" radius="14" fit="cover" placeholder="Tú" style="width:46px;height:46px;" hint-size="46px,46px"></x-import>
+          </div>
+
+          <div style="background:linear-gradient(135deg,#A6FF3D,#7FD41E);border-radius:22px;padding:20px;color:#0A0A0A;display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <span style="font-size:12px;font-weight:800;opacity:.7;letter-spacing:0.04em;">ENTRENO DE HOY</span>
+              <span style="font-size:21px;font-weight:900;letter-spacing:-0.02em;">Tren superior · Fuerza</span>
+              <span style="font-size:13px;font-weight:700;opacity:.75;">6 ejercicios · 45 min</span>
+            </div>
+            <div onClick="{{ goWorkout }}" style="width:54px;height:54px;border-radius:50%;background:#0A0A0A;color:#A6FF3D;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;flex:none;">▶</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;">
+              <span style="font-size:12px;color:#7B7E8A;font-weight:700;">Calorías hoy</span>
+              <span style="font-family:'Archivo Black',sans-serif;font-size:26px;color:#fff;">1.480<span style="font-size:13px;color:#5C5F6B;font-weight:700;"> / 2.100</span></span>
+              <div style="height:5px;border-radius:999px;background:#1C1E27;overflow:hidden;"><div style="height:100%;width:70%;background:#A6FF3D;"></div></div>
+            </div>
+            <div style="background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;">
+              <span style="font-size:12px;color:#7B7E8A;font-weight:700;">Racha 🔥</span>
+              <span style="font-family:'Archivo Black',sans-serif;font-size:26px;color:#fff;">12 <span style="font-size:13px;color:#5C5F6B;font-weight:700;">días</span></span>
+              <span style="font-size:12px;color:#A6FF3D;font-weight:700;">¡Sigue así, máquina!</span>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <span style="font-size:14px;font-weight:800;color:#fff;">Tus macros de hoy</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+              <sc-for list="{{ macros }}" as="m" hint-placeholder-count="3">
+                <div style="background:#13141A;border:1px solid #1C1E27;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
+                  <span style="font-size:11px;color:#7B7E8A;font-weight:700;">{{ m.label }}</span>
+                  <span style="font-size:18px;font-weight:900;color:#fff;">{{ m.val }}</span>
+                  <div style="height:4px;width:100%;border-radius:999px;background:#1C1E27;overflow:hidden;"><div style="{{ m.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <span style="font-size:14px;font-weight:800;color:#fff;">Tu suscripción</span>
+            <div style="background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <span style="font-size:16px;font-weight:900;color:#fff;">{{ subPlanName }}</span>
+                  <span style="font-size:13px;color:#9396A2;font-weight:600;">{{ subPlanPrice }}</span>
+                </div>
+                <span style="{{ subBadgeStyle }}">{{ subBadgeLabel }}</span>
+              </div>
+              <div style="font-size:12px;color:#7B7E8A;font-weight:600;">{{ subRenewLine }}</div>
+              <div style="height:1px;background:#1C1E27;"></div>
+              <div style="display:flex;gap:10px;">
+                <button onClick="{{ goPlans }}" style="flex:1;background:#15161D;border:1px solid #23252F;color:#fff;border-radius:13px;padding:13px;font-size:13.5px;font-weight:800;font-family:'Archivo',sans-serif;cursor:pointer;">Cambiar plan</button>
+                <button onClick="{{ subBtnClick }}" style="{{ subBtnStyle }}">{{ subBtnLabel }}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ WORKOUT ============ -->
+      <sc-if value="{{ isWorkout }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:6px 22px 110px;display:flex;flex-direction:column;gap:18px;animation:floatUp .4s ease;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-family:ui-monospace,monospace;font-size:11px;color:#5C5F6B;">JUEVES · TREN SUPERIOR</div>
+              <h2 style="margin:3px 0 0;font-family:'Archivo Black',sans-serif;font-size:25px;color:#fff;letter-spacing:-0.02em;">Entreno de hoy</h2>
+            </div>
+            <div style="{{ ringStyle }}">
+              <div style="width:70px;height:70px;border-radius:50%;background:#0C0D12;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                <span style="font-size:18px;font-weight:900;color:#fff;line-height:1;">{{ doneCount }}/5</span>
+                <span style="font-size:9px;color:#7B7E8A;font-weight:700;">HECHO</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ exercises }}" as="e" hint-placeholder-count="5">
+              <button onClick="{{ e.onClick }}" style="{{ e.style }}">
+                <div style="display:flex;flex-direction:column;gap:3px;text-align:left;">
+                  <span style="{{ e.nameStyle }}">{{ e.name }}</span>
+                  <span style="font-size:12px;color:#7B7E8A;font-weight:600;">{{ e.detail }}</span>
+                </div>
+                <span style="{{ e.checkStyle }}">{{ e.check }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <button onClick="{{ goDiet }}" style="background:#A6FF3D;color:#0A0A0A;border:none;border-radius:16px;padding:17px;font-size:15px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">Terminar entreno 💪</button>
+        </div>
+      </sc-if>
+
+      <!-- ============ DIET ============ -->
+      <sc-if value="{{ isDiet }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:6px 22px 110px;display:flex;flex-direction:column;gap:18px;animation:floatUp .4s ease;">
+          <div>
+            <div style="font-family:ui-monospace,monospace;font-size:11px;color:#5C5F6B;">PLAN DE HOY · EQUILIBRADO</div>
+            <h2 style="margin:3px 0 0;font-family:'Archivo Black',sans-serif;font-size:25px;color:#fff;letter-spacing:-0.02em;">Tu dieta</h2>
+          </div>
+
+          <div style="background:#13141A;border:1px solid #1C1E27;border-radius:20px;padding:18px;display:flex;justify-content:space-between;align-items:center;">
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-size:12px;color:#7B7E8A;font-weight:700;">Total del día</span>
+              <span style="font-family:'Archivo Black',sans-serif;font-size:28px;color:#fff;">2.100 <span style="font-size:14px;color:#5C5F6B;">kcal</span></span>
+            </div>
+            <div style="display:flex;gap:14px;">
+              <div style="text-align:center;"><div style="font-size:16px;font-weight:900;color:#A6FF3D;">160g</div><div style="font-size:10px;color:#7B7E8A;font-weight:700;">PROT</div></div>
+              <div style="text-align:center;"><div style="font-size:16px;font-weight:900;color:#fff;">210g</div><div style="font-size:10px;color:#7B7E8A;font-weight:700;">CARB</div></div>
+              <div style="text-align:center;"><div style="font-size:16px;font-weight:900;color:#fff;">62g</div><div style="font-size:10px;color:#7B7E8A;font-weight:700;">GRASA</div></div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <sc-for list="{{ meals }}" as="m" hint-placeholder-count="4">
+              <div style="background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:16px;display:flex;gap:14px;align-items:center;">
+                <div style="width:48px;height:48px;flex:none;border-radius:14px;background:rgba(166,255,61,0.1);display:flex;align-items:center;justify-content:center;font-size:22px;">{{ m.icon }}</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:3px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:15px;font-weight:900;color:#fff;">{{ m.meal }}</span><span style="font-size:12px;font-weight:800;color:#A6FF3D;">{{ m.kcal }}</span></div>
+                  <span style="font-size:13px;color:#9396A2;font-weight:500;">{{ m.items }}</span>
+                  <span style="font-family:ui-monospace,monospace;font-size:10px;color:#5C5F6B;">{{ m.macro }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ============ PROGRESS ============ -->
+      <sc-if value="{{ isProgress }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:6px 22px 110px;display:flex;flex-direction:column;gap:20px;animation:floatUp .4s ease;">
+          <div>
+            <div style="font-family:ui-monospace,monospace;font-size:11px;color:#5C5F6B;">ÚLTIMAS 6 SEMANAS</div>
+            <h2 style="margin:3px 0 0;font-family:'Archivo Black',sans-serif;font-size:25px;color:#fff;letter-spacing:-0.02em;">Tu progreso</h2>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:16px;">
+              <div style="font-size:12px;color:#7B7E8A;font-weight:700;">Peso actual</div>
+              <div style="font-family:'Archivo Black',sans-serif;font-size:26px;color:#fff;">68,4 kg</div>
+              <div style="font-size:12px;color:#A6FF3D;font-weight:800;">▼ 3,6 kg</div>
+            </div>
+            <div style="background:#13141A;border:1px solid #1C1E27;border-radius:18px;padding:16px;">
+              <div style="font-size:12px;color:#7B7E8A;font-weight:700;">Entrenos</div>
+              <div style="font-family:'Archivo Black',sans-serif;font-size:26px;color:#fff;">38</div>
+              <div style="font-size:12px;color:#A6FF3D;font-weight:800;">▲ 94% asistencia</div>
+            </div>
+          </div>
+
+          <div style="background:#13141A;border:1px solid #1C1E27;border-radius:20px;padding:20px 18px 16px;">
+            <div style="font-size:13px;font-weight:800;color:#fff;margin-bottom:16px;">Evolución del peso</div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:8px;height:120px;">
+              <sc-for list="{{ weightBars }}" as="b" hint-placeholder-count="6">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;height:100%;justify-content:flex-end;">
+                  <div style="{{ b.barStyle }}"></div>
+                  <span style="font-size:10px;color:#5C5F6B;font-weight:700;">{{ b.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:11px;">
+            <span style="font-size:14px;font-weight:800;color:#fff;">Fotos de progreso</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div style="position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;">
+                <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="progress-before" shape="rect" fit="cover" placeholder="Foto antes" style="position:absolute;inset:0;width:100%;height:100%;" hint-size="100%,100%"></x-import>
+                <span style="position:absolute;left:10px;bottom:10px;font-family:ui-monospace,monospace;font-size:10px;color:#7B7E8A;background:rgba(0,0,0,0.4);padding:3px 7px;border-radius:6px;pointer-events:none;">ANTES · 12 abr</span>
+              </div>
+              <div style="position:relative;aspect-ratio:3/4;border-radius:16px;overflow:hidden;">
+                <x-import component-from-global-scope="image-slot" from="./image-slot.js" id="progress-now" shape="rect" fit="cover" placeholder="Foto ahora" style="position:absolute;inset:0;width:100%;height:100%;" hint-size="100%,100%"></x-import>
+                <span style="position:absolute;left:10px;bottom:10px;font-family:ui-monospace,monospace;font-size:10px;color:#A6FF3D;background:rgba(0,0,0,0.4);padding:3px 7px;border-radius:6px;pointer-events:none;">AHORA · 24 jun</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+
+    <!-- payment overlay -->
+    <sc-if value="{{ showPayOverlay }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;z-index:20;background:rgba(8,8,11,0.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:30px;">
+        <sc-if value="{{ isPaying }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;">
+            <div style="width:58px;height:58px;border-radius:50%;border:4px solid #1C1E27;border-top-color:#A6FF3D;animation:spin .8s linear infinite;"></div>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <span style="font-size:15px;font-weight:800;color:#fff;">Conectando con Redsys…</span>
+              <span style="font-size:12px;color:#7B7E8A;font-weight:600;">Pasarela segura de tu banco · 3D Secure</span>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isPaid }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;animation:popIn .35s ease;">
+            <div style="width:84px;height:84px;border-radius:50%;background:#A6FF3D;color:#0A0A0A;display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;">✓</div>
+            <div style="font-family:'Archivo Black',sans-serif;font-size:24px;color:#fff;letter-spacing:-0.02em;">¡Pago confirmado!</div>
+            <div style="font-size:14px;color:#9396A2;line-height:1.5;max-width:240px;">Tu suscripción ya está activa y el importe se abonará a la cuenta de PulsoFit. ¡Vamos a por ese cambio! 💪</div>
+            <button onClick="{{ finishPay }}" style="margin-top:8px;background:#A6FF3D;color:#0A0A0A;border:none;border-radius:14px;padding:15px 28px;font-size:15px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">Entrar a PulsoFit</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- cancel subscription overlay -->
+    <sc-if value="{{ showCancelOverlay }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;z-index:20;background:rgba(8,8,11,0.82);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;padding:18px;">
+        <sc-if value="{{ isCancelConfirm }}" hint-placeholder-val="{{ true }}">
+          <div style="width:100%;background:#13141A;border:1px solid #23252F;border-radius:24px;padding:24px 22px;display:flex;flex-direction:column;gap:14px;animation:popIn .3s ease;">
+            <div style="width:52px;height:52px;border-radius:15px;background:rgba(255,90,54,0.12);display:flex;align-items:center;justify-content:center;font-size:24px;">😢</div>
+            <div style="font-family:'Archivo Black',sans-serif;font-size:21px;color:#fff;letter-spacing:-0.02em;">¿Cancelar tu suscripción?</div>
+            <div style="font-size:14px;color:#9396A2;line-height:1.5;">Perderás el acceso <strong style="color:#FF7A5C;">al instante</strong> a tu plan de entreno, la dieta y el seguimiento. Podrás volver cuando quieras.</div>
+            <button onClick="{{ keepSub }}" style="margin-top:4px;background:#A6FF3D;color:#0A0A0A;border:none;border-radius:14px;padding:16px;font-size:15px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">Mantener suscripción</button>
+            <button onClick="{{ confirmCancel }}" style="background:transparent;color:#FF7A5C;border:none;font-size:14px;font-weight:800;font-family:'Archivo',sans-serif;cursor:pointer;padding:6px;">Sí, cancelar y perder el acceso</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isCancelDone }}" hint-placeholder-val="{{ false }}">
+          <div style="width:100%;background:#13141A;border:1px solid #23252F;border-radius:24px;padding:26px 22px;display:flex;flex-direction:column;align-items:center;gap:13px;text-align:center;animation:popIn .3s ease;">
+            <div style="width:72px;height:72px;border-radius:50%;background:#1C1E27;color:#9396A2;display:flex;align-items:center;justify-content:center;font-size:32px;">🔒</div>
+            <div style="font-family:'Archivo Black',sans-serif;font-size:21px;color:#fff;letter-spacing:-0.02em;">Suscripción cancelada</div>
+            <div style="font-size:14px;color:#9396A2;line-height:1.5;max-width:250px;">Has perdido el acceso a las funciones premium. Vuelve a suscribirte cuando quieras para retomar tu plan.</div>
+            <button onClick="{{ closeCancel }}" style="margin-top:6px;background:#A6FF3D;border:none;color:#0A0A0A;border-radius:14px;padding:14px 28px;font-size:15px;font-weight:900;font-family:'Archivo',sans-serif;cursor:pointer;">Ver planes</button>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- bottom tab bar -->
+    <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;height:74px;border-top:1px solid #1A1C24;background:rgba(10,11,15,0.92);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-around;padding:0 14px 14px;">
+        <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+          <button onClick="{{ t.onClick }}" style="{{ t.style }}">
+            <span style="font-size:21px;line-height:1;">{{ t.icon }}</span>
+            <span style="font-size:10px;font-weight:800;letter-spacing:0.02em;">{{ t.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'welcome',
+    objetivo: 'Perder grasa',
+    dieta: 'Equilibrada',
+    comidas: '4',
+    plan: 'anual',
+    payStatus: 'idle',
+    cancelStatus: 'idle',
+    subscribed: false,
+    done: [false, false, false, false, false],
+  };
+
+  go(screen) {
+    const gated = ['home', 'workout', 'diet', 'progress'];
+    if (gated.includes(screen) && !this.state.subscribed) screen = 'plans';
+    this.setState({ screen });
+    const sc = this.scroller(); if (sc) sc.scrollTop = 0;
+  }
+  goPay() { this.setState({ payStatus: 'idle' }); this.setState({ screen: 'pay' }); const sc = this.scroller(); if (sc) sc.scrollTop = 0; }
+  pay() { this.setState({ payStatus: 'processing' }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ payStatus: 'success' }), 1700); }
+  finishPay() { this.setState({ payStatus: 'idle', subscribed: true, screen: 'home' }); const sc = this.scroller(); if (sc) sc.scrollTop = 0; }
+  askCancel() { this.setState({ cancelStatus: 'confirm' }); }
+  confirmCancel() { this.setState({ cancelStatus: 'done', subscribed: false }); }
+  keepSub() { this.setState({ cancelStatus: 'idle' }); }
+  closeCancel() { this.setState({ cancelStatus: 'idle', screen: 'plans' }); const sc = this.scroller(); if (sc) sc.scrollTop = 0; }
+  scroller() { try { return this.el && this.el.querySelector ? this.el.querySelector('[style*="overflow-y"]') : null; } catch (e) { return null; } }
+  pick(key, val) { this.setState({ [key]: val }); }
+  toggleDone(i) { this.setState(s => { const d = s.done.slice(); d[i] = !d[i]; return { done: d }; }); }
+
+  optBtn(group, label, two) {
+    const on = this.state[group] === label;
+    return {
+      label,
+      onClick: () => this.pick(group, label),
+      style: {
+        padding: two ? '15px 10px' : '11px 16px',
+        borderRadius: '13px', cursor: 'pointer', fontFamily: "'Archivo',sans-serif",
+        fontWeight: 800, fontSize: '13.5px', textAlign: 'center', lineHeight: 1.15,
+        border: on ? '1.5px solid #A6FF3D' : '1.5px solid #23252F',
+        background: on ? 'rgba(166,255,61,0.12)' : '#15161D',
+        color: on ? '#D7FFA8' : '#C7CAD4',
+        transition: 'all .15s',
+      },
+    };
+  }
+
+  renderVals() {
+    const A = '#A6FF3D';
+    const s = this.state;
+
+    const navStyle = (id, locked) => ({
+      padding: '8px 14px', borderRadius: '999px', cursor: 'pointer', fontFamily: "'Archivo',sans-serif",
+      fontSize: '12px', fontWeight: 800, transition: 'all .15s',
+      border: s.screen === id ? '1px solid ' + A : '1px solid #1F212B',
+      background: s.screen === id ? A : '#101218',
+      color: s.screen === id ? '#0A0A0A' : '#8A8D99',
+      opacity: locked ? 0.5 : 1,
+    });
+    const gatedNav = ['home', 'workout', 'diet', 'progress'];
+    const screens = [
+      ['welcome', 'Bienvenida'], ['quiz', 'Cuestionario'], ['plans', 'Planes'], ['pay', 'Pago'],
+      ['home', 'Inicio'], ['workout', 'Entreno'], ['diet', 'Dieta'], ['progress', 'Progreso'],
+    ].map(([id, label]) => {
+      const locked = gatedNav.includes(id) && !s.subscribed;
+      return { label: locked ? label + ' 🔒' : label, style: navStyle(id, locked), onClick: () => this.go(id) };
+    });
+
+    const doneCount = s.done.filter(Boolean).length;
+    const pct = (doneCount / 5) * 100;
+
+    const exNames = [
+      ['Press de banca', '4 series · 8 reps · 50 kg'],
+      ['Press militar', '4 series · 10 reps · 30 kg'],
+      ['Remo con barra', '4 series · 10 reps · 45 kg'],
+      ['Fondos en paralelas', '3 series · 12 reps'],
+      ['Curl de bíceps', '3 series · 12 reps · 14 kg'],
+    ];
+    const exercises = exNames.map(([name, detail], i) => {
+      const d = s.done[i];
+      return {
+        name, detail, onClick: () => this.toggleDone(i),
+        check: d ? '✓' : '',
+        style: {
+          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: '12px', padding: '15px 16px', borderRadius: '16px', cursor: 'pointer',
+          fontFamily: "'Archivo',sans-serif", textAlign: 'left',
+          border: d ? '1.5px solid rgba(166,255,61,0.4)' : '1.5px solid #1C1E27',
+          background: d ? 'rgba(166,255,61,0.07)' : '#13141A', transition: 'all .15s',
+        },
+        nameStyle: { fontSize: '15px', fontWeight: 900, color: d ? '#9396A2' : '#fff', textDecoration: d ? 'line-through' : 'none' },
+        checkStyle: {
+          width: '28px', height: '28px', flex: 'none', borderRadius: '9px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '15px', fontWeight: 900,
+          border: d ? 'none' : '2px solid #2A2D38',
+          background: d ? A : 'transparent', color: '#0A0A0A',
+        },
+      };
+    });
+
+    const planChosen = (id) => s.plan === id;
+    const planCard = (id) => ({
+      width: '100%', padding: '18px', borderRadius: '20px', cursor: 'pointer',
+      fontFamily: "'Archivo',sans-serif", transition: 'all .15s',
+      border: planChosen(id) ? '2px solid ' + A : '2px solid #1C1E27',
+      background: planChosen(id) ? 'rgba(166,255,61,0.06)' : '#13141A',
+    });
+    const planes = [
+      { id: 'mensual', name: 'Mensual', sub: 'Flexibilidad total', price: '4,99€', per: 'al mes', badge: '', cardStyle: planCard('mensual'), badgeStyle: { display: 'none' }, onClick: () => this.pick('plan', 'mensual') },
+      { id: 'anual', name: 'Anual', sub: 'Equivale a 4,16€/mes', price: '49,99€', per: 'al año', badge: 'AHORRA 17%', cardStyle: planCard('anual'), badgeStyle: { fontSize: '9px', fontWeight: 900, color: '#0A0A0A', background: A, padding: '3px 7px', borderRadius: '999px', letterSpacing: '0.04em' }, onClick: () => this.pick('plan', 'anual') },
+    ];
+    const features = [
+      'Plan de entreno hecho a tu medida',
+      'Dieta personalizada según tu objetivo',
+      'Seguimiento de peso, fotos y récords',
+      'Ajustes automáticos cada semana',
+      'Chat directo con tu entrenador',
+    ];
+
+    const macros = [
+      { label: 'Proteína', val: '120g', barStyle: { height: '100%', width: '75%', background: A, borderRadius: '999px' } },
+      { label: 'Carbos', val: '145g', barStyle: { height: '100%', width: '69%', background: '#5A6072', borderRadius: '999px' } },
+      { label: 'Grasas', val: '40g', barStyle: { height: '100%', width: '64%', background: '#5A6072', borderRadius: '999px' } },
+    ];
+
+    const meals = [
+      { icon: '🍳', meal: 'Desayuno', kcal: '480 kcal', items: 'Avena, plátano y claras de huevo', macro: 'P 32 · C 60 · G 10' },
+      { icon: '🥗', meal: 'Comida', kcal: '720 kcal', items: 'Pollo, arroz integral y verduras', macro: 'P 55 · C 78 · G 18' },
+      { icon: '🍎', meal: 'Merienda', kcal: '300 kcal', items: 'Yogur griego, nueces y miel', macro: 'P 22 · C 24 · G 14' },
+      { icon: '🐟', meal: 'Cena', kcal: '600 kcal', items: 'Salmón, patata y ensalada', macro: 'P 51 · C 48 · G 20' },
+    ];
+
+    const weights = [72.0, 71.1, 70.3, 69.6, 68.9, 68.4];
+    const labels = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'];
+    const max = 72.5, min = 67.5;
+    const weightBars = weights.map((w, i) => {
+      const h = 18 + ((w - min) / (max - min)) * 82;
+      const last = i === weights.length - 1;
+      return {
+        label: labels[i],
+        barStyle: {
+          width: '100%', maxWidth: '26px', height: h + '%', borderRadius: '8px 8px 4px 4px',
+          background: last ? A : '#2A2D38', transition: 'all .2s',
+        },
+      };
+    });
+
+    const tabDef = [
+      ['home', '🏠', 'Inicio'], ['workout', '💪', 'Entreno'], ['diet', '🥗', 'Dieta'], ['progress', '📈', 'Progreso'],
+    ];
+    const tabs = tabDef.map(([id, icon, label]) => {
+      const on = s.screen === id;
+      return {
+        icon, label, onClick: () => this.go(id),
+        style: {
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+          background: 'transparent', border: 'none', cursor: 'pointer',
+          fontFamily: "'Archivo',sans-serif", color: on ? A : '#5C5F6B', flex: 1, padding: '4px',
+        },
+      };
+    });
+
+    const ctaPlan = s.plan === 'anual' ? 'Suscribirme por 49,99€/año' : 'Suscribirme por 4,99€/mes';
+
+    const payPlan = s.plan === 'anual'
+      ? { name: 'Plan Anual', price: '49,99€', cycle: 'Facturado una vez al año', renew: 'Se renueva el 26 jun 2027 · Cancela cuando quieras' }
+      : { name: 'Plan Mensual', price: '4,99€', cycle: 'Facturado cada mes', renew: 'Se renueva el 26 jul 2026 · Cancela cuando quieras' };
+
+    const walletBase = {
+      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '9px',
+      padding: '15px', borderRadius: '14px', fontFamily: "'Archivo',sans-serif",
+      fontSize: '16px', fontWeight: 900, cursor: 'pointer', border: 'none',
+    };
+    const wallets = [
+      { label: 'Apple Pay', mark: '', markStyle: { fontSize: '17px' }, onClick: () => this.pay(), style: { ...walletBase, background: '#000', color: '#fff', border: '1px solid #2A2D38' } },
+      { label: 'Google Pay', mark: 'G', markStyle: { fontWeight: 900, color: '#4285F4', fontSize: '17px' }, onClick: () => this.pay(), style: { ...walletBase, background: '#fff', color: '#1A1A1A' } },
+      { label: 'PayPal', mark: '', markStyle: { fontSize: '17px' }, onClick: () => this.pay(), style: { ...walletBase, background: '#FFC439', color: '#003087' } },
+    ];
+
+    const subRenewDate = s.plan === 'anual' ? '26 jun 2027' : '26 jul 2026';
+    const subBadge = { label: 'ACTIVA', style: { fontSize: '9px', fontWeight: 900, color: '#0A0A0A', background: A, padding: '4px 9px', borderRadius: '999px', letterSpacing: '0.04em', flex: 'none' } };
+    const subRenewLine = 'Próximo cobro: ' + subRenewDate;
+    const subBtn = { label: 'Cancelar', onClick: () => this.askCancel(), style: { flex: 1, borderRadius: '13px', padding: '13px', fontSize: '13.5px', fontWeight: 800, fontFamily: "'Archivo',sans-serif", cursor: 'pointer', background: 'transparent', border: '1px solid rgba(255,90,54,0.4)', color: '#FF7A5C' } };
+
+    return {
+      screens,
+      isWelcome: s.screen === 'welcome', isQuiz: s.screen === 'quiz', isPlans: s.screen === 'plans', isPay: s.screen === 'pay',
+      isHome: s.screen === 'home', isWorkout: s.screen === 'workout', isDiet: s.screen === 'diet', isProgress: s.screen === 'progress',
+      showTabs: ['home', 'workout', 'diet', 'progress'].includes(s.screen),
+      showPayOverlay: s.payStatus === 'processing' || s.payStatus === 'success',
+      isPaying: s.payStatus === 'processing', isPaid: s.payStatus === 'success',
+      goQuiz: () => this.go('quiz'), goPlans: () => this.go('plans'), goHome: () => this.go('home'),
+      goWorkout: () => this.go('workout'), goDiet: () => this.go('diet'),
+      goPay: () => this.goPay(), payNow: () => this.pay(), finishPay: () => this.finishPay(),
+      payPlanName: payPlan.name, payPlanPrice: payPlan.price, payPlanCycle: payPlan.cycle, payPlanRenew: payPlan.renew, wallets,
+      subPlanName: payPlan.name, subPlanPrice: payPlan.price + ' ' + (s.plan === 'anual' ? '/año' : '/mes'),
+      subBadgeLabel: subBadge.label, subBadgeStyle: subBadge.style, subRenewLine, subRenewDate,
+      subBtnLabel: subBtn.label, subBtnStyle: subBtn.style, subBtnClick: subBtn.onClick,
+      showCancelOverlay: s.cancelStatus === 'confirm' || s.cancelStatus === 'done',
+      isCancelConfirm: s.cancelStatus === 'confirm', isCancelDone: s.cancelStatus === 'done',
+      askCancel: () => this.askCancel(), confirmCancel: () => this.confirmCancel(), keepSub: () => this.keepSub(), closeCancel: () => this.closeCancel(),
+      objetivos: ['Perder grasa', 'Ganar músculo', 'Mantenerme', 'Más resistencia'].map(l => this.optBtn('objetivo', l, true)),
+      dietas: ['Equilibrada', 'Alta en proteína', 'Vegetariana', 'Sin control'].map(l => this.optBtn('dieta', l, false)),
+      comidas: ['2', '3', '4', '5'].map(l => this.optBtn('comidas', l, false)),
+      planes, features, ctaPlan,
+      macros, meals, exercises, doneCount,
+      ringStyle: { width: '88px', height: '88px', flex: 'none', borderRadius: '50%', background: 'conic-gradient(' + A + ' ' + pct + '%, #1C1E27 0)', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+      weightBars, tabs,
+    };
+  }
+}
+</script>
+</body>
+</html>
