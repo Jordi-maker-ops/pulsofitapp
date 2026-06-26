@@ -1,0 +1,56 @@
+name: iOS build
+
+# Builds the iOS app on a macOS runner (Xcode is only available on macOS).
+# Builds unsigned for the simulator to verify it compiles end-to-end. Producing
+# a signed device build / IPA for TestFlight needs your Apple signing assets
+# (see the commented job at the bottom).
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap sync ios
+
+      - name: Resolve Swift packages
+        working-directory: app/ios/App
+        run: xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App
+
+      - name: Build (unsigned, simulator)
+        working-directory: app/ios/App
+        run: |
+          xcodebuild \
+            -project App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  # Signed TestFlight/App Store build (uncomment and add secrets to enable):
+  #   secrets needed: BUILD_CERTIFICATE_BASE64, P12_PASSWORD,
+  #   PROVISIONING_PROFILE_BASE64, KEYCHAIN_PASSWORD, APPLE_TEAM_ID.
+  # Steps: import cert into a temp keychain, install the profile, then
+  #   `xcodebuild -scheme App -archivePath build/App.xcarchive archive`
+  #   `xcodebuild -exportArchive -archivePath build/App.xcarchive \
+  #      -exportOptionsPlist ExportOptions.plist -exportPath build`
+  # and upload the resulting .ipa with `actions/upload-artifact` or to
+  # TestFlight via `xcrun altool` / `fastlane pilot`.

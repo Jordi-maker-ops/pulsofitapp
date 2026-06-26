@@ -1,0 +1,117 @@
+# PulsoFit
+
+Personalized fitness app — workout, diet and progress tracking with a paid
+subscription (4,99 €/month or 49,99 €/year). Energetic dark UI with a lime
+accent, in Spanish, motivational tone.
+
+This is a React + Vite + TypeScript implementation of the **App Fitness.dc.html**
+design handoff from Claude Design (see `../project/`). It recreates the prototype
+pixel-for-pixel as a real, navigable app.
+
+## Screens
+
+A single phone mockup that navigates between 8 screens plus overlays:
+
+1. **Bienvenida** — welcome hero (fillable photo), motivational CTA.
+2. **Cuestionario** — goal, target, current diet, weight/height, meals per day.
+3. **Planes** — Monthly 4,99 € / Annual 49,99 € (saves 17 %), selectable.
+4. **Pago** — Redsys gateway: Apple Pay / Google Pay / PayPal + card, billing
+   account, processing → success overlay.
+5. **Inicio** — today's workout, calories, streak, macros, and a
+   "Tu suscripción" card to change plan or cancel.
+6. **Entreno** — exercises you tick off; a progress ring reacts.
+7. **Dieta** — the day's 4 meals with kcal and macros.
+8. **Progreso** — weight, evolution chart, before/after photos.
+
+### Behaviors
+
+- **Subscription gating** — `home`, `workout`, `diet`, `progress` require an
+  active subscription. Without one (or after cancelling) you're redirected to
+  Planes and the tabs are locked.
+- **Payment flow** — fully simulated, mirroring the prototype. Any method
+  triggers "Conectando con Redsys…" → "¡Pago confirmado!" → enters the app.
+  No real money moves; integrating a real Redsys/TPV backend is out of scope.
+- **Cancel** — confirm dialog → access revoked immediately.
+- **Image slots** — welcome hero, home avatar and progress photos are
+  click/drag-to-fill; the chosen image persists in `localStorage`.
+
+## Run
+
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # type-check + production build into dist/
+npm run preview  # serve the production build
+```
+
+## Mobile (iOS & Android)
+
+The app ships to phones via **Capacitor**, which wraps this exact web build in
+native iOS/Android shells — no rewrite. On a real device the app renders
+**full-screen** (no mockup frame or nav pills; navigation is the flow + the
+bottom tab bar). The desktop browser still shows the phone-mockup showcase.
+Append `?mobile=1` to the dev URL to preview the full-screen mobile shell in a
+browser.
+
+Native projects are committed under `android/` and `ios/`. The web layer is
+copied into them on every `cap sync`.
+
+### Android
+
+Requires Android Studio (or the Android SDK + JDK 21).
+
+```bash
+npm run android          # build web → cap sync → open Android Studio
+# then press Run in Android Studio, or from the CLI:
+cd android && ./gradlew assembleDebug   # outputs app/build/outputs/apk/debug/
+```
+
+### iOS
+
+Requires **macOS + Xcode** (iOS cannot be built on Linux/Windows).
+
+```bash
+npm run ios              # build web → cap sync → open Xcode
+# then select a simulator/device and press Run.
+```
+
+### After changing the web app
+
+```bash
+npm run sync             # rebuild web assets and copy into both native projects
+```
+
+### CI builds (no Mac / Android SDK needed locally)
+
+`.github/workflows/` builds both platforms on GitHub Actions:
+
+- **`android.yml`** — Linux runner, installs the Android SDK, runs
+  `./gradlew assembleDebug`, and uploads the debug **APK** as an artifact.
+- **`ios.yml`** — macOS runner, builds the app with Xcode (unsigned, simulator)
+  to verify it compiles. Signed TestFlight/IPA steps are included as comments —
+  enable them by adding your Apple signing secrets.
+
+Push to GitHub and the APK appears under the workflow run's **Artifacts**. This
+is the recommended way to get real Apple + Android builds when you don't have a
+Mac and the Android SDK set up locally.
+
+> Note: this implementation was prepared in a Linux container with no Android
+> SDK and no Xcode (Google's SDK download is blocked there), so the APK/IPA were
+> not compiled in-place — but both native projects are generated, synced, and
+> ready to build on a machine with the toolchains above. `appId` is
+> `com.pulsofit.app`; change it in `capacitor.config.ts` before publishing.
+
+## Structure
+
+```
+capacitor.config.ts  native app id/name, splash, background
+android/ , ios/       generated native projects (committed)
+src/
+  App.tsx            shells: desktop showcase (mockup) + full-screen mobile
+  useApp.tsx         state machine + navigation/gating (ports the prototype's DCLogic)
+  platform.ts        native detection + status-bar/splash setup (no-op on web)
+  ImageSlot.tsx      fillable image placeholder (localStorage-backed)
+  overlays.tsx       payment + cancel-subscription overlays
+  theme.ts           palette / font tokens
+  screens/           Welcome, Quiz, Plans, Pay, Home, Workout, Diet, Progress
+```

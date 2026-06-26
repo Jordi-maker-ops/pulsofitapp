@@ -1,0 +1,52 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: #08080b;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Archivo', system-ui, sans-serif;
+}
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(166, 255, 61, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(166, 255, 61, 0);
+  }
+}
+@keyframes floatUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
