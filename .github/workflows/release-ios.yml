@@ -5,7 +5,7 @@ name: iOS release (TestFlight)
 # Triggers on version tags like v1.0.0, or manually.
 #
 # Prerequisites (one-time, in your Apple account):
-#   - App Store Connect app record with bundle id com.pulsofit.app
+#   - App Store Connect app record with bundle id com.pulsofit.fitness
 #   - An App Store Connect API key (Users and Access → Integrations → App Store Connect API)
 #
 # Required repository secrets:

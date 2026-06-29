@@ -4,7 +4,7 @@ android {
     namespace = "com.pulsofit.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.pulsofit.app"
+        applicationId "com.pulsofit.fitness"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

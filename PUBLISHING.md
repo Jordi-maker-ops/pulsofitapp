@@ -49,7 +49,7 @@ iOS.
 ### One-time setup
 1. Enrol in the **Apple Developer Program** ($99/year):
    https://developer.apple.com/programs/
-2. Register the bundle id **`com.pulsofit.app`** (Certificates, IDs & Profiles →
+2. Register the bundle id **`com.pulsofit.fitness`** (Certificates, IDs & Profiles →
    Identifiers) and create the app record in **App Store Connect**
    (https://appstoreconnect.apple.com → Apps → +).
 3. Create an **App Store Connect API key** (Users and Access → Integrations →

@@ -106,7 +106,7 @@ Mac and the Android SDK set up locally.
 > SDK and no Xcode (Google's SDK download is blocked there), so the APK/IPA were
 > not compiled in-place — but both native projects are generated, synced, and
 > ready to build on a machine with the toolchains above. `appId` is
-> `com.pulsofit.app`; change it in `capacitor.config.ts` before publishing.
+> `com.pulsofit.fitness`; change it in `capacitor.config.ts` before publishing.
 
 ## Brand assets (icon & splash)
 
