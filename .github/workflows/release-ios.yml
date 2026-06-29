@@ -58,6 +58,10 @@ jobs:
           </dict></plist>
           EOF
 
+      - name: List schemes (diagnostic)
+        working-directory: app/ios/App
+        run: xcodebuild -list -project App.xcodeproj
+
       - name: Archive
         working-directory: app/ios/App
         run: |
