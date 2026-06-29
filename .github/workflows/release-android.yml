@@ -8,9 +8,9 @@ name: Android release (signed AAB)
 #   PULSOFIT_KEYSTORE_PASSWORD   keystore password
 #   PULSOFIT_KEY_ALIAS           key alias (e.g. "pulsofit")
 #   PULSOFIT_KEY_PASSWORD        key password
+# Manual-only: releases are iOS-focused. Run this from the Actions tab
+# ("Run workflow") if/when you want an Android build too.
 on:
-  push:
-    tags: ['v*']
   workflow_dispatch:
 
 jobs:
