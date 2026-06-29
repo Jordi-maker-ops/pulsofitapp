@@ -5,7 +5,7 @@ import {
   useState,
   type CSSProperties,
 } from 'react'
-import { LIME, font } from './theme'
+import { A as LIME, font } from './theme'
 
 type Shape = 'rect' | 'rounded' | 'circle' | 'pill'
 

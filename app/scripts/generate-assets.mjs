@@ -4,22 +4,25 @@
 import sharp from 'sharp'
 import { mkdirSync } from 'node:fs'
 
-const LIME = '#A6FF3D'
 const DIR = new URL('../assets/', import.meta.url)
 mkdirSync(DIR, { recursive: true })
 
-// The mark: a green dumbbell with an apple beside it (training + diet).
-// Authored in a 0..1024 box so it can be nested at any size/position.
+// The mark: a coral-gradient dumbbell with an apple beside it (training + diet),
+// on the app's deep purple-black surface. Authored in a 0..1024 box.
 const mark = `
   <svg x="{X}" y="{Y}" width="{W}" height="{W}" viewBox="0 0 1024 1024">
     <defs>
+      <linearGradient id="mk" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FF8A3D"/>
+        <stop offset="100%" stop-color="#FF3D6E"/>
+      </linearGradient>
       <radialGradient id="glow" cx="50%" cy="51%" r="50%">
-        <stop offset="0%" stop-color="${LIME}" stop-opacity="0.26"/>
-        <stop offset="100%" stop-color="${LIME}" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#FF5E3A" stop-opacity="0.30"/>
+        <stop offset="100%" stop-color="#FF5E3A" stop-opacity="0"/>
       </radialGradient>
     </defs>
     <circle cx="505" cy="522" r="380" fill="url(#glow)"/>
-    <g fill="${LIME}" transform="translate(8 -6)">
+    <g fill="url(#mk)" transform="translate(8 -6)">
       <!-- Dumbbell -->
       <rect x="186" y="430" width="44"  height="184" rx="16"/>
       <rect x="238" y="460" width="34"  height="124" rx="12"/>
@@ -49,9 +52,9 @@ const place = (w, canvas = 1024) => {
 const iconBg = (size) => `
   <defs>
     <radialGradient id="bg" cx="50%" cy="34%" r="80%">
-      <stop offset="0%" stop-color="#1A1D26"/>
-      <stop offset="60%" stop-color="#0C0D12"/>
-      <stop offset="100%" stop-color="#08080B"/>
+      <stop offset="0%" stop-color="#211627"/>
+      <stop offset="60%" stop-color="#0C0A11"/>
+      <stop offset="100%" stop-color="#08070B"/>
     </radialGradient>
   </defs>
   <rect width="${size}" height="${size}" fill="url(#bg)"/>`
@@ -74,9 +77,9 @@ await png('icon-foreground.png', 1024, place(760))
 const splashInner = (s) => `
   <defs>
     <radialGradient id="sbg" cx="50%" cy="38%" r="75%">
-      <stop offset="0%" stop-color="#16181F"/>
-      <stop offset="60%" stop-color="#0C0D12"/>
-      <stop offset="100%" stop-color="#08080B"/>
+      <stop offset="0%" stop-color="#1B1320"/>
+      <stop offset="60%" stop-color="#0C0A11"/>
+      <stop offset="100%" stop-color="#08070B"/>
     </radialGradient>
   </defs>
   <rect width="${s}" height="${s}" fill="url(#sbg)"/>` +

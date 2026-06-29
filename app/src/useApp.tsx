@@ -10,199 +10,150 @@ import {
 } from 'react'
 
 export type Screen =
-  | 'welcome'
-  | 'quiz'
-  | 'plans'
-  | 'pay'
-  | 'home'
-  | 'workout'
-  | 'diet'
-  | 'progress'
+  | 'welcome' | 'login' | 'register' | 'quiz' | 'notifperm'
+  | 'home' | 'workout' | 'diet' | 'progress'
+  | 'profile' | 'notif' | 'contact' | 'admin'
 
-export type Plan = 'mensual' | 'anual'
-export type PayStatus = 'idle' | 'processing' | 'success'
-export type CancelStatus = 'idle' | 'confirm' | 'done'
-
-const GATED: Screen[] = ['home', 'workout', 'diet', 'progress']
+export type NotifKey = 'entreno' | 'agua' | 'comidas' | 'peso' | 'motiva'
+export type AdminTab = 'clientes' | 'mensajes' | 'stats'
 
 export interface AppState {
   screen: Screen
   objetivo: string
+  motivo: string
+  nivel: string
+  ritmo: string
   dieta: string
-  comidas: string
-  plan: Plan
-  payStatus: PayStatus
-  cancelStatus: CancelStatus
-  subscribed: boolean
+  diasEntreno: string
+  contactSent: boolean
   done: boolean[]
+  water: number
+  mealsDone: boolean[]
+  notif: Record<NotifKey, boolean>
+  adminTab: AdminTab
+  faqOpen: number
+  videoEx: number
 }
 
 export interface AppController {
   state: AppState
   scrollRef: RefObject<HTMLDivElement>
-  go: (screen: Screen) => void
-  goPay: () => void
-  pay: () => void
-  finishPay: () => void
-  askCancel: () => void
-  confirmCancel: () => void
-  keepSub: () => void
-  closeCancel: () => void
-  pick: (key: 'objetivo' | 'dieta' | 'comidas' | 'plan', val: string) => void
+  go: (s: Screen) => void
+  pick: (k: keyof AppState, v: string) => void
   toggleDone: (i: number) => void
+  toggleMeal: (i: number) => void
+  waterAdd: () => void
+  waterSub: () => void
+  toggleNotif: (k: NotifKey) => void
+  setAdminTab: (t: AdminTab) => void
+  toggleFaq: (i: number) => void
+  openVideo: (i: number) => void
+  closeVideo: () => void
+  acceptNotif: () => void
+  skipNotif: () => void
+  doLogin: () => void
+  logout: () => void
+  sendContact: () => void
+  resetContact: () => void
 }
 
-const AppContext = createContext<AppController | null>(null)
+const TABS: Screen[] = ['home', 'workout', 'diet', 'progress', 'profile']
+
+const Ctx = createContext<AppController | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>({
     screen: 'welcome',
     objetivo: 'Perder grasa',
+    motivo: 'Sentirme bien',
+    nivel: 'Intermedio',
+    ritmo: 'Activo',
     dieta: 'Equilibrada',
-    comidas: '4',
-    plan: 'anual',
-    payStatus: 'idle',
-    cancelStatus: 'idle',
-    subscribed: false,
+    diasEntreno: '4',
+    contactSent: false,
     done: [false, false, false, false, false],
+    water: 5,
+    mealsDone: [false, false, false, false],
+    notif: { entreno: true, agua: true, comidas: true, peso: true, motiva: false },
+    adminTab: 'clientes',
+    faqOpen: -1,
+    videoEx: -1,
   })
 
   const scrollRef = useRef<HTMLDivElement>(null)
-  const payTimer = useRef<number | undefined>(undefined)
-
   const scrollTop = useCallback(() => {
-    // Defer so the new screen has mounted before we reset the scroll position.
     requestAnimationFrame(() => {
       if (scrollRef.current) scrollRef.current.scrollTop = 0
     })
   }, [])
 
-  const go = useCallback(
-    (screen: Screen) => {
-      setState((s) => {
-        const target =
-          GATED.includes(screen) && !s.subscribed ? 'plans' : screen
-        return { ...s, screen: target }
-      })
-      scrollTop()
-    },
-    [scrollTop],
-  )
-
-  const goPay = useCallback(() => {
-    setState((s) => ({ ...s, payStatus: 'idle', screen: 'pay' }))
-    scrollTop()
-  }, [scrollTop])
-
-  const pay = useCallback(() => {
-    setState((s) => ({ ...s, payStatus: 'processing' }))
-    window.clearTimeout(payTimer.current)
-    payTimer.current = window.setTimeout(() => {
-      setState((s) => ({ ...s, payStatus: 'success' }))
-    }, 1700)
-  }, [])
-
-  const finishPay = useCallback(() => {
-    setState((s) => ({
-      ...s,
-      payStatus: 'idle',
-      subscribed: true,
-      screen: 'home',
-    }))
-    scrollTop()
-  }, [scrollTop])
-
-  const askCancel = useCallback(
-    () => setState((s) => ({ ...s, cancelStatus: 'confirm' })),
-    [],
-  )
-  const confirmCancel = useCallback(
-    () => setState((s) => ({ ...s, cancelStatus: 'done', subscribed: false })),
-    [],
-  )
-  const keepSub = useCallback(
-    () => setState((s) => ({ ...s, cancelStatus: 'idle' })),
-    [],
-  )
-  const closeCancel = useCallback(() => {
-    setState((s) => ({ ...s, cancelStatus: 'idle', screen: 'plans' }))
+  const go = useCallback((screen: Screen) => {
+    setState((s) => ({ ...s, screen, contactSent: false }))
     scrollTop()
   }, [scrollTop])
 
   const pick = useCallback(
-    (key: 'objetivo' | 'dieta' | 'comidas' | 'plan', val: string) =>
-      setState((s) => ({ ...s, [key]: val })),
+    (k: keyof AppState, v: string) => setState((s) => ({ ...s, [k]: v })),
     [],
   )
-
   const toggleDone = useCallback(
-    (i: number) =>
-      setState((s) => {
-        const done = s.done.slice()
-        done[i] = !done[i]
-        return { ...s, done }
-      }),
+    (i: number) => setState((s) => { const d = s.done.slice(); d[i] = !d[i]; return { ...s, done: d } }),
     [],
   )
-
-  const controller = useMemo<AppController>(
-    () => ({
-      state,
-      scrollRef,
-      go,
-      goPay,
-      pay,
-      finishPay,
-      askCancel,
-      confirmCancel,
-      keepSub,
-      closeCancel,
-      pick,
-      toggleDone,
-    }),
-    [
-      state,
-      go,
-      goPay,
-      pay,
-      finishPay,
-      askCancel,
-      confirmCancel,
-      keepSub,
-      closeCancel,
-      pick,
-      toggleDone,
-    ],
+  const toggleMeal = useCallback(
+    (i: number) => setState((s) => { const d = s.mealsDone.slice(); d[i] = !d[i]; return { ...s, mealsDone: d } }),
+    [],
   )
+  const waterAdd = useCallback(() => setState((s) => ({ ...s, water: Math.min(8, s.water + 1) })), [])
+  const waterSub = useCallback(() => setState((s) => ({ ...s, water: Math.max(0, s.water - 1) })), [])
+  const toggleNotif = useCallback(
+    (k: NotifKey) => setState((s) => ({ ...s, notif: { ...s.notif, [k]: !s.notif[k] } })),
+    [],
+  )
+  const setAdminTab = useCallback((t: AdminTab) => setState((s) => ({ ...s, adminTab: t })), [])
+  const toggleFaq = useCallback(
+    (i: number) => setState((s) => ({ ...s, faqOpen: s.faqOpen === i ? -1 : i })),
+    [],
+  )
+  const openVideo = useCallback((i: number) => setState((s) => ({ ...s, videoEx: i })), [])
+  const closeVideo = useCallback(() => setState((s) => ({ ...s, videoEx: -1 })), [])
+  const acceptNotif = useCallback(() => {
+    setState((s) => ({ ...s, notif: { entreno: true, agua: true, comidas: true, peso: true, motiva: true }, screen: 'home' }))
+    scrollTop()
+  }, [scrollTop])
+  const skipNotif = useCallback(() => go('home'), [go])
+  const doLogin = useCallback(() => go('home'), [go])
+  const logout = useCallback(() => go('welcome'), [go])
+  const resetContact = useCallback(() => setState((s) => ({ ...s, contactSent: false })), [])
+  const sendContact = useCallback(() => {
+    const v = (id: string) => {
+      const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement | null
+      return el ? el.value.trim() : ''
+    }
+    const name = v('contact-name'), email = v('contact-email'), subj = v('contact-subject'), msg = v('contact-msg')
+    const subject = encodeURIComponent('PulsoFit · ' + (subj || 'Consulta') + (name ? ' · ' + name : ''))
+    const body = encodeURIComponent(`Nombre: ${name}\nEmail: ${email}\nAsunto: ${subj}\n\n${msg}`)
+    window.location.href = `mailto:infopulsofit@gmail.com?subject=${subject}&body=${body}`
+    setState((s) => ({ ...s, contactSent: true }))
+  }, [])
 
-  return <AppContext.Provider value={controller}>{children}</AppContext.Provider>
+  const ctrl = useMemo<AppController>(() => ({
+    state, scrollRef, go, pick, toggleDone, toggleMeal, waterAdd, waterSub,
+    toggleNotif, setAdminTab, toggleFaq, openVideo, closeVideo, acceptNotif,
+    skipNotif, doLogin, logout, sendContact, resetContact,
+  }), [state, go, pick, toggleDone, toggleMeal, waterAdd, waterSub, toggleNotif,
+    setAdminTab, toggleFaq, openVideo, closeVideo, acceptNotif, skipNotif,
+    doLogin, logout, sendContact, resetContact])
+
+  return <Ctx.Provider value={ctrl}>{children}</Ctx.Provider>
 }
 
 export function useApp(): AppController {
-  const ctx = useContext(AppContext)
+  const ctx = useContext(Ctx)
   if (!ctx) throw new Error('useApp must be used within AppProvider')
   return ctx
 }
 
-// Plan-dependent copy, mirrors renderVals() in the prototype.
-export function planCopy(plan: Plan) {
-  return plan === 'anual'
-    ? {
-        name: 'Plan Anual',
-        price: '49,99€',
-        cycle: 'Facturado una vez al año',
-        renew: 'Se renueva el 26 jun 2027 · Cancela cuando quieras',
-        per: '/año',
-        renewDate: '26 jun 2027',
-        cta: 'Suscribirme por 49,99€/año',
-      }
-    : {
-        name: 'Plan Mensual',
-        price: '4,99€',
-        cycle: 'Facturado cada mes',
-        renew: 'Se renueva el 26 jul 2026 · Cancela cuando quieras',
-        per: '/mes',
-        renewDate: '26 jul 2026',
-        cta: 'Suscribirme por 4,99€/mes',
-      }
+export function showTabs(s: AppState): boolean {
+  return TABS.includes(s.screen) && s.videoEx < 0
 }

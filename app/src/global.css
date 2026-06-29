@@ -7,7 +7,7 @@ body {
   padding: 0;
 }
 body {
-  background: #08080b;
+  background: #08070b;
   -webkit-font-smoothing: antialiased;
   font-family: 'Archivo', system-ui, sans-serif;
 }
@@ -15,38 +15,68 @@ body {
   width: 0;
   height: 0;
 }
+input,
+textarea {
+  font-family: 'Archivo', system-ui, sans-serif;
+}
 
 @keyframes pulseGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(166, 255, 61, 0.35);
-  }
-  50% {
-    box-shadow: 0 0 0 14px rgba(166, 255, 61, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 61, 110, 0.45); }
+  50% { box-shadow: 0 0 0 14px rgba(255, 61, 110, 0); }
 }
 @keyframes floatUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 @keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes playPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-12deg); }
+  60% { transform: rotate(8deg); }
+  80% { transform: rotate(-5deg); }
+}
+@keyframes repUp {
+  0%, 100% { transform: translateY(30px); }
+  50% { transform: translateY(-30px); }
+}
+@keyframes repSide {
+  0%, 100% { transform: translateX(-34px); }
+  50% { transform: translateX(34px); }
+}
+@keyframes repCurl {
+  0%, 100% { transform: rotate(26deg); }
+  50% { transform: rotate(-26deg); }
+}
+@keyframes tlPlay {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+@keyframes f_pressV {
+  0%, 100% { transform: translateY(11px); }
+  50% { transform: translateY(-11px); }
+}
+@keyframes f_pull {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-22px); }
+}
+@keyframes f_dip {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(16px); }
+}
+@keyframes f_curlL {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-150deg); }
+}
+@keyframes f_curlR {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(150deg); }
 }
