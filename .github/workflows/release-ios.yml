@@ -1,22 +1,20 @@
 name: iOS release (TestFlight)
 
-# Archives, signs and uploads the app to TestFlight using an App Store Connect
-# API key (cloud signing — no manual certificates/profiles needed).
-# Triggers on version tags like v1.0.0, or manually.
+# Archives, signs and uploads to TestFlight using an App Store Connect API key
+# (cloud signing — no manual certificates/profiles). Triggers on version tags.
 #
-# Prerequisites (one-time, in your Apple account):
-#   - App Store Connect app record with bundle id com.pulsofit.fitness
-#   - An App Store Connect API key (Users and Access → Integrations → App Store Connect API)
-#
-# Required repository secrets:
-#   APPSTORE_API_KEY_ID       the key's Key ID
-#   APPSTORE_API_ISSUER_ID    the Issuer ID
-#   APPSTORE_API_KEY_BASE64   base64 of the downloaded AuthKey_XXXX.p8
-#   APPLE_TEAM_ID             your 10-char Apple Team ID
+# The only SECRET you need to set is APPSTORE_API_KEY_BASE64 (base64 of your
+# AuthKey_XXXX.p8). The Key ID / Issuer ID / Team ID below are identifiers, not
+# secrets (useless without the private key), so they live here in plain text.
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+
+env:
+  APPSTORE_API_KEY_ID: YHG77G22ZX
+  APPSTORE_API_ISSUER_ID: f140f12a-bc34-40a3-862a-e239494d5c83
+  APPLE_TEAM_ID: 7PFX3TDBT7
 
 jobs:
   build:
@@ -37,25 +35,21 @@ jobs:
       - run: npm run build
       - run: npx cap sync ios
 
-      - name: Verify required secrets are set
+      - name: Verify API key secret is set
         env:
-          KID: ${{ secrets.APPSTORE_API_KEY_ID }}
-          ISS: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-          TEAM: ${{ secrets.APPLE_TEAM_ID }}
           B64: ${{ secrets.APPSTORE_API_KEY_BASE64 }}
         run: |
-          fail=0
-          [ -n "$KID" ]  && echo "APPSTORE_API_KEY_ID: set (len ${#KID})"      || { echo "::error::APPSTORE_API_KEY_ID is MISSING";   fail=1; }
-          [ -n "$ISS" ]  && echo "APPSTORE_API_ISSUER_ID: set (len ${#ISS})"   || { echo "::error::APPSTORE_API_ISSUER_ID is MISSING"; fail=1; }
-          [ -n "$TEAM" ] && echo "APPLE_TEAM_ID: set (len ${#TEAM})"           || { echo "::error::APPLE_TEAM_ID is MISSING";          fail=1; }
-          [ -n "$B64" ]  && echo "APPSTORE_API_KEY_BASE64: set (len ${#B64})"  || { echo "::error::APPSTORE_API_KEY_BASE64 is MISSING"; fail=1; }
-          exit $fail
+          if [ -z "$B64" ]; then
+            echo "::error::Secret APPSTORE_API_KEY_BASE64 is missing. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "APPSTORE_API_KEY_BASE64: set (len ${#B64})"
 
       - name: Install App Store Connect API key
         run: |
           mkdir -p ~/private_keys
           echo "${{ secrets.APPSTORE_API_KEY_BASE64 }}" | base64 -d \
-            > ~/private_keys/AuthKey_${{ secrets.APPSTORE_API_KEY_ID }}.p8
+            > ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8
 
       - name: Write ExportOptions.plist
         working-directory: app/ios/App
@@ -66,7 +60,7 @@ jobs:
           <plist version="1.0"><dict>
             <key>method</key><string>app-store</string>
             <key>signingStyle</key><string>automatic</string>
-            <key>teamID</key><string>${{ secrets.APPLE_TEAM_ID }}</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
             <key>uploadSymbols</key><true/>
             <key>destination</key><string>upload</string>
           </dict></plist>
@@ -82,24 +76,23 @@ jobs:
           xcodebuild -project App.xcodeproj -scheme App \
             -configuration Release -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_"${{ secrets.APPSTORE_API_KEY_ID }}".p8 \
-            -authenticationKeyID "${{ secrets.APPSTORE_API_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.APPSTORE_API_ISSUER_ID }}" \
-            DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+            -authenticationKeyPath ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8 \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
             archive
 
-      # destination=upload makes -exportArchive sign AND upload to TestFlight
-      # in one step (no fragile altool invocation).
+      # destination=upload makes -exportArchive sign AND upload in one step.
       - name: Export & upload to TestFlight
         working-directory: app/ios/App
         run: |
           xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/App.xcarchive" \
             -exportOptionsPlist ExportOptions.plist -exportPath "$RUNNER_TEMP/export" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath ~/private_keys/AuthKey_"${{ secrets.APPSTORE_API_KEY_ID }}".p8 \
-            -authenticationKeyID "${{ secrets.APPSTORE_API_KEY_ID }}" \
-            -authenticationKeyIssuerID "${{ secrets.APPSTORE_API_ISSUER_ID }}"
+            -authenticationKeyPath ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8 \
+            -authenticationKeyID "$APPSTORE_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID"
 
       - uses: actions/upload-artifact@v4
         if: always()
