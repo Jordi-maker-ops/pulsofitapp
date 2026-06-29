@@ -76,7 +76,9 @@ jobs:
           set -o pipefail
           xcodebuild -project App.xcodeproj -scheme App \
             -configuration Release -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            -destination 'generic/platform=iOS' \
             -allowProvisioningUpdates \
+            -allowProvisioningDeviceRegistration \
             -authenticationKeyPath ~/private_keys/AuthKey_${APPSTORE_API_KEY_ID}.p8 \
             -authenticationKeyID "$APPSTORE_API_KEY_ID" \
             -authenticationKeyIssuerID "$APPSTORE_API_ISSUER_ID" \
